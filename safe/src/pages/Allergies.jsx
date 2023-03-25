@@ -6,43 +6,37 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
+import { create } from 'ipfs-http-client'
 
 const Allergies = () => {
   const web3 = new Web3(window.ethereum);
   const mycontract = new web3.eth.Contract(
     contract["abi"],
-    contract["networks"]["5777"]["address"]
+    contract["address"]
   );
   const [cookies, setCookie] = useCookies();
-  const [allergies, setallergies] = useState([{}]);
+  const [allergies, setallergies] = useState([]);
 
   useEffect(() => {
-    const all = [];
-    async function getallergies() {
+    const ins = [];
+    async function getIns() {
       await mycontract.methods
-        .getdata()
+        .getPatient()
         .call()
-        .then(res => {
-          for (let i = 0; i < res.length; i++) {
-            var data = JSON.parse(res[i]);
-            if (data["type"] === "patient" && data['mail'] === cookies['mail']) {
-              if (data.hasOwnProperty('allergies')) {
-                console.log(data['allergies']);
-                for (let i = 0; i < data['allergies'].length; i++) {
-                  if (data['allergies'][i].hasOwnProperty('name')) {
-                    all.push(data['allergies'][i]);
-                  }
-                }
-                break;
-              }
+        .then(async (res) => {
+          for (let i = res.length - 1; i >= 0; i--) {
+            if (res[i] === cookies['hash']) {
+              const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
+              ins.push(data.allergies);
+              break;
             }
           }
-        })
-        setallergies(all);
+        });
+      setallergies(ins);
     }
-    getallergies();
+    getIns();
     return;
-  }, [allergies.length])
+  }, [allergies.length]);
 
   const [addFormData, setAddFormData] = useState({
     name: "",
@@ -57,7 +51,7 @@ const Allergies = () => {
     setAddFormData(newFormData);
   };
 
-  
+
 
   async function submit() {
     var accounts = await window.ethereum.request({
@@ -68,30 +62,32 @@ const Allergies = () => {
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
       contract["abi"],
-      contract["networks"]["5777"]["address"]
+      contract["address"]
     );
 
     mycontract.methods
-      .getdata()
+      .getPatient()
       .call()
-      .then((res) => {
-        for (let i = 0; i < res.length; i++) {
-          var data = JSON.parse(res[i]);
-          if (data["mail"] === cookies["mail"]) {
-            data["allergies"].push(addFormData);
+      .then(async (res) => {
+        for (let i = res.length - 1; i >= 0; i--) {
+          if (res[i] === cookies['hash']) {
+            const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
+            const ins = data.allergies;
+            ins.push(addFormData);
+            data.allergies = ins;
 
-            mycontract.methods
-              .updateData(parseInt(cookies["index"]), JSON.stringify(data))
-              .send({ from: currentaddress })
-              .then(() => {
-                alert("Allgery Saved");
-                window.location.reload();
-              })
-              .catch((err) => {
-                console.log(err);
-              });
+            let client = create();
+            client = create(new URL('http://127.0.0.1:5001'));
+            const { cid } = await client.add(JSON.stringify(data));
+            const hash = cid['_baseCache'].get('z');
 
-            break;
+            await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
+              setCookie('hash', hash);
+              alert("Added");
+              window.location.reload();
+            }).catch((err) => {
+              console.log(err);
+            })
           }
         }
       });
@@ -140,6 +136,23 @@ const Allergies = () => {
     })
   }
 
+  function showAllergies() {
+    if (allergies.length > 0) {
+      return allergies[0].map(allergy => {
+        return (
+          <tr>
+            <td>{allergy.name}</td>
+            <td>{allergy.type}</td>
+            <td>{allergy.medication}</td>
+            <td>
+              <input type="button" value="Delete" onClick={() => del(allergy.name)} />
+            </td>
+          </tr>
+        )
+      })
+    }
+  }
+
   return (
     <div className="flex relative dark:bg-main-dark-bg">
       <div className="w-72 fixed sidebar dark:bg-secondary-dark-bg bg-white ">
@@ -168,16 +181,7 @@ const Allergies = () => {
                 </tr>
               </thead>
               <tbody>
-                {allergies.map((allergy) => (
-                  <tr>
-                    <td>{allergy.name}</td>
-                    <td>{allergy.type}</td>
-                    <td>{allergy.medication}</td>
-                    <td>
-                      <input type="button" value="Delete" onClick={() => del(allergy.name)} />
-                    </td>
-                  </tr>
-                ))}
+                {showAllergies()}
               </tbody>
             </table>
           </form>

@@ -6,43 +6,37 @@ import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
 import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
+import { create } from 'ipfs-http-client'
 
 const Insurance = () => {
   const web3 = new Web3(window.ethereum);
   const mycontract = new web3.eth.Contract(
     contract["abi"],
-    contract["networks"]["5777"]["address"]
+    contract["address"]
   );
   const [cookies, setCookie] = useCookies();
-  const [insurances, setInsurance] = useState([{}]);
+  const [insurances, setInsurance] = useState([]);
 
   useEffect(() => {
     const ins = [];
-    async function getInsurances() {
+    async function getIns() {
       await mycontract.methods
-        .getdata()
+        .getPatient()
         .call()
-        .then(res => {
-          for (let i = 0; i < res.length; i++) {
-            var data = JSON.parse(res[i]);
-            if (data["type"] === "patient" && data['mail'] === cookies['mail']) {
-              if (data.hasOwnProperty('insurance')) {
-                for (let i = 0; i < data['insurance'].length; i++) {
-                  // console.log(data['insurance'][i]);
-                  if (data['insurance'][i].hasOwnProperty('company')) {
-                    ins.push(data['insurance'][i]);
-                  }
-                }
-                break;
-              }
+        .then(async (res) => {
+          for (let i = res.length - 1; i >= 0; i--) {
+            if (res[i] === cookies['hash']) {
+              const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
+              ins.push(data.insurance);
+              break;
             }
           }
-        })
-        setInsurance(ins);
+        });
+      setInsurance(ins);
     }
-    getInsurances();
+    getIns();
     return;
-  }, [insurances.length])
+  }, [insurances.length]);
 
 
   const [addFormData, setAddFormData] = useState({
@@ -63,26 +57,30 @@ const Insurance = () => {
       method: "eth_requestAccounts",
     });
     var currentaddress = accounts[0];
-    mycontract.methods
-      .getdata()
-      .call()
-      .then((res) => {
-        for (let i = 0; i < res.length; i++) {
-          var data = JSON.parse(res[i]);
-          if (data["mail"] === cookies["mail"]) {
-            data["insurance"].push(addFormData);
 
-            mycontract.methods
-              .updateData(parseInt(cookies["index"]), JSON.stringify(data))
-              .send({ from: currentaddress })
-              .then(() => {
-                alert("Insurance Saved");
-                window.location.reload();
-              })
-              .catch((err) => {
-                console.log(err);
-              });
-            break;
+    mycontract.methods
+      .getPatient()
+      .call()
+      .then(async (res) => {
+        for (let i = res.length - 1; i >= 0; i--) {
+          if (res[i] === cookies['hash']) {
+            const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
+            const ins = data.insurance;
+            ins.push(addFormData);
+
+            data.insurance = ins;
+            let client = create();
+            client = create(new URL('http://127.0.0.1:5001'));
+            const { cid } = await client.add(JSON.stringify(data));
+            const hash = cid['_baseCache'].get('z');
+
+            await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
+              setCookie('hash', hash);
+              alert("Insurance Added");
+              window.location.reload();
+            }).catch((err) => {
+              console.log(err);
+            })
           }
         }
       });
@@ -98,7 +96,7 @@ const Insurance = () => {
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
       contract["abi"],
-      contract["networks"]["5777"]["address"]
+      contract["address"]
     );
 
     mycontract.methods.getdata().call().then(res => {
@@ -106,7 +104,7 @@ const Insurance = () => {
         data = JSON.parse(data);
         if (data['type'] === 'patient' && data['mail'] === cookies['mail']) {
           var list = data['insurance'];
-          var updateList = []
+          var updateList = [];
 
           for (let i = 0; i < list.length; i++) {
             if (list[i]['policyNo'] !== policy) {
@@ -129,6 +127,20 @@ const Insurance = () => {
         }
       })
     })
+  }
+
+  function showInsurances() {
+    if (insurances.length > 0) {
+      return insurances[0].map(data => {
+        return (
+          <tr>
+            <td>{data.company}</td>
+            <td>{data.policyNo}</td>
+            <td>{data.expiry}</td>
+          </tr>
+        )
+      })
+    }
   }
 
   return (
@@ -159,16 +171,7 @@ const Insurance = () => {
                 </tr>
               </thead>
               <tbody>
-                {insurances.map((ins) => (
-                  <tr>
-                    <td>{ins.policyNo}</td>
-                    <td>{ins.company}</td>
-                    <td>{ins.expiry}</td>
-                    <td>
-                      <input type="button" value="Delete" onClick={() => del(ins.policyNo)} />
-                    </td>
-                  </tr>
-                ))}
+                {showInsurances()}
               </tbody>
             </table>
           </form>
