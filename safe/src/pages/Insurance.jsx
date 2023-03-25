@@ -32,6 +32,7 @@ const Insurance = () => {
             }
           }
         });
+        // console.log(ins);
       setInsurance(ins);
     }
     getIns();

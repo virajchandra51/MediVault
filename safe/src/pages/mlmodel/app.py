@@ -15,7 +15,6 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 import pickle
 
 #no need to do this thing lmao
-#
 
 app = Flask(__name__)
 cors = CORS(app)
