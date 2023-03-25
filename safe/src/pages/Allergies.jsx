@@ -103,36 +103,39 @@ const Allergies = () => {
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
       contract["abi"],
-      contract["networks"]["5777"]["address"]
+      contract["address"]
     );
 
-    mycontract.methods.getdata().call().then(res => {
-      res.map(data => {
-        data = JSON.parse(data);
-        if (data['type'] === 'patient' && data['mail'] === cookies['mail']) {
-          var list = data['allergies'];
-          var updateList = []
-
-          for (let i = 0; i < list.length; i++) {
-            if (list[i]['name'] !== name) {
-              updateList.push(list[i]);
+    mycontract.methods.getPatient().call().then(async (res) => {
+      for (let i = res.length - 1; i >= 0; i--) {
+        if (res[i] === cookies['hash']) {
+          const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
+          const alls = data.allergies;
+          const newList = [];
+          for (let i = 1; i < alls.length; i++) {
+            if (alls[i].name === name) {
+              continue;
+            }
+            else {
+              newList.push(alls[[i]]);
             }
           }
+          data.allergies = newList;
 
-          data['allergies'] = updateList;
+          let client = create();
+          client = create(new URL('http://127.0.0.1:5001'));
+          const { cid } = await client.add(JSON.stringify(data));
+          const hash = cid['_baseCache'].get('z');
 
-          mycontract.methods.updateData(cookies['index'], JSON.stringify(data))
-            .send({ from: currentaddress })
-            .then(() => {
-              alert("Removed");
-              window.location.reload();
-            })
-            .catch((err) => {
-              console.log(err);
-            });
-          return;
+          await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
+            setCookie('hash', hash);
+            alert("Deleted");
+            window.location.reload();
+          }).catch((err) => {
+            console.log(err);
+          })
         }
-      })
+      }
     })
   }
 
