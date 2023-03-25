@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
+import { create } from 'ipfs-http-client'
 
 const Doctors = () => {
     const [cookies, setCookie] = useCookies();
@@ -29,11 +30,11 @@ const Doctors = () => {
                     }
                 })
             setDoc(doc);
+            console.log(doctors);
         }
         getDoctors();
-        console.log(doctors);
         return;
-    }, [doctors.length])
+    }, [doctors.length]);
 
 
     async function add(hash) {
@@ -41,26 +42,41 @@ const Doctors = () => {
         var currentaddress = accounts[0];
 
         const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(contract['abi'], contract['networks']['5777']['address']);
-        // console.log(mycontract);
-        mycontract.methods.getdata().call()
-            .then(res => {
-                res.map(data => {
-                    data = JSON.parse(data);
-                    if (data['mail'] === cookies['mail'] && data['type'] === 'patient') {
-                        var drs = data['selectedDoctors'];
-                        drs.push(mail);
-                        data['selectedDoctors'] = drs;
-                        console.log(data);
+        const mycontract = new web3.eth.Contract(contract['abi'], contract['address']);
 
-                        mycontract.methods.updateData(parseInt(cookies['index']), JSON.stringify(data)).send({ from: currentaddress }).then(() => {
+        mycontract.methods.getPatient().call()
+            .then(async (res) => {
+                for (let i = res.length - 1; i >= 0; i--) {
+                    if (res[i] === cookies['hash']) {
+                        const pat = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
+                        const drs = pat.selectedDoctors;
+
+                        let flag = 0;
+                        for (let j = 0; j < drs.length; j++) {
+                            if (drs[j] === hash) {
+                                flag = 1;
+                                break;
+                            }
+                        }
+
+                        drs.push(hash);
+                        pat.selectedDoctors = drs;
+
+                        let client = create();
+                        client = create(new URL('http://127.0.0.1:5001'))
+                        const { cid } = await client.add(JSON.stringify(pat));
+                        const nhash = cid['_baseCache'].get('z');
+
+                        mycontract.methods.addPatient(nhash).send({from: currentaddress}).then(() => {
+                            setCookie('hash', nhash);
                             alert("Doctor added");
+                            window.location.reload();
                         }).catch((err) => {
                             console.log(err);
                         })
-                        return;
+                        break;
                     }
-                })
+                }
             })
     }
 
