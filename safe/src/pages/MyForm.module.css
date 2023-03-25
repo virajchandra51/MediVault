@@ -1,0 +1,41 @@
+/* .appcontainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 1rem;
+  }
+  
+  .appcontainer  table {
+    border-collapse: collapse;
+    width: 10%;
+  }
+  
+  .appcontainer th,
+  .appcontainer td {
+    border: 1px solid #ffffff;
+    text-align: left;
+    padding: 8px;
+    font-size: 32px;
+  }
+  
+  .appcontainer th {
+    background-color: rgb(117, 201, 250);
+  }
+  
+  .appcontainer td {
+    background-color: rgb(205, 235, 253);
+  }
+  
+  .appcontainer  form {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .appcontainer form td:last-child {
+    display: flex;
+    justify-content: space-evenly;
+  }
+  
+  .appcontainer  form * {
+    font-size: 28px;
+  } */
