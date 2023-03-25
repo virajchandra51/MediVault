@@ -24,7 +24,7 @@ const Home = () => {
           <div className="logo">
             <img className="logo-img" src={logosvg} />
             <a href="#" className="nav__logo">
-              MediSafe
+              MediVault
             </a>
           </div>
           <div className="nav__menu" id="nav-menu">
@@ -81,7 +81,7 @@ const Home = () => {
             <div className="home__data">
               <h1 className="home__title">Health Record System</h1>
               <p className="home__description">
-                MediSafe is a secure blockchain based platform for storage of
+                MediVault is a secure blockchain based platform for storage of
                 highly sensitive and critical data related to patients that is
                 shared among multiple facilities and agencies for effective
                 diagnosis and treatment.
@@ -273,9 +273,9 @@ const Home = () => {
       </main>
         <footer className="footer section">
           <p className="footer__copy">
-            Design And Developed By The Boys
+            Design And Developed By The Blockheads
           </p>
-          <p className="footer__copy">&#169; MediSafe. All right reserved</p>
+          <p className="footer__copy">&#169; MediVault. All right reserved</p>
         </footer>
     </div>
   );
