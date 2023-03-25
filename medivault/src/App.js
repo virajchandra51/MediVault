@@ -5,6 +5,10 @@ import { Home } from './pages';
 import './App.css';
 
 import { useStateContext } from './contexts/ContextProvider';
+import Signup from './pages/Signup';
+import Login from './pages/Login';
+import MyProfile from './pages/MyProfile';
+import MyProfileDoc from './pages/MyProfileDoc';
 
 const App = () => {
   const { setCurrentColor, setCurrentMode, currentMode, activeMenu, currentColor, themeSettings, setThemeSettings } = useStateContext();
@@ -24,6 +28,10 @@ const App = () => {
               <Routes>
                 {/* dashboard  */}
                 <Route path="/" element={(<Home />)} />
+                <Route path="/signup" element={(<Signup />)} />
+                <Route path="/login" element={(<Login />)} />
+                <Route path="/myprofile" element={(<MyProfile />)} />
+                <Route path="/myprofiledoc" element={(<MyProfileDoc />)} />
 
               </Routes>
       </BrowserRouter>
