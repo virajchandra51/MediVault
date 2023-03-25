@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import './Signup.css'
 import Web3 from "web3";
-import contract from '../contracts/cruds.json';
+import contract from '../contracts/contract.json';
+import { create } from 'ipfs-http-client'
 
 const Signup = () => {
-    const [reg, setReg] = useState({
-        "type": "patient",
+    const [type, setType] = useState(false);
+    const [regp, setRegp] = useState({
         "name": "",
         "mail": "",
         "password": "",
@@ -18,42 +19,65 @@ const Signup = () => {
         "selectedDoctors": [{}]
     });
 
+    const [regd, setRegd] = useState({
+        "name": "",
+        "mail": "",
+        "password": "",
+        license: "",
+        speciality: ""
+    });
+
     function handle(e) {
-        const newData = { ...reg };
-        newData[e.target.name] = e.target.value;
-        setReg(newData);
+        const newData1 = { ...regp };
+        const newData2 = { ...regd };
+        newData1[e.target.name] = e.target.value;
+        newData2[e.target.name] = e.target.value;
+        setRegp(newData1);
+        setRegd(newData2);
     }
 
-    async function register() {
+    function handleD(e) {
+        const newData = { ...regd };
+        newData[e.target.name] = e.target.value;
+        setRegd(newData);
+    }
 
-        // await fetch(`http://172.22.137.252:5001/hashing/${JSON.stringify(data)}`, {
-        //     // method: "POST",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //     },
-        //     // body: JSON.stringify(newPerson),
-        // })
-        //     .then(res => res.json())
-        //     .then(d => {
-        //         setDisease(d);
-        //     })
-        //     .catch(error => {
-        //         window.alert(error);
-        //         return;
-        //     });
-
-        console.log(reg);
-        var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        var currentaddress = accounts[0];
+    async function register(e) {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const currentaddress = accounts[0];
 
         const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(contract['abi'], contract['networks']['5777']['address']);
-        // console.log(mycontract);
-        mycontract.methods.addData(JSON.stringify(reg)).send({ from: currentaddress }).then(() => {
-            alert("Account created");
-        }).catch((err) => {
-            console.log(err);
-        })
+        const mycontract = new web3.eth.Contract(
+            contract["abi"],
+            "0x64F7C3Cd37e9548217925909e09299ddb6E7F61e"
+        );
+
+        if (!e) {
+            // patient
+            let client = create();
+            client = create(new URL('http://127.0.0.1:5001'));
+            const { cid } = await client.add(JSON.stringify(regp));
+            const hash = cid['_baseCache'].get('z');
+
+            await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
+                alert("Account created");
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
+        else {
+            // doctor
+            let client = create();
+            client = create(new URL('http://127.0.0.1:5001'))
+            const { cid } = await client.add(JSON.stringify(regd));
+            const hash = cid['_baseCache'].get('z');
+
+            await mycontract.methods.addDoctor(hash).send({ from: currentaddress }).then(() => {
+                alert("Account created");
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
     }
 
     return (
@@ -77,7 +101,7 @@ const Signup = () => {
                         <div className="input-heading" style={{ margin: "1rem 0", }}>
                             <i className="fas fa-key"></i>
                             <h5>User Type</h5>
-                            <select id="user-type" name="type" onChange={(e) => handle(e)}>
+                            <select id="user-type" name="type" onChange={() => { setType(!type) }}>
                                 <option value="patient">Patient</option>
                                 <option value="doctor">Doctor</option>
                             </select>
@@ -94,21 +118,21 @@ const Signup = () => {
 
                     </div>
 
-                    {reg.type === "doctor" &&
+                    {type &&
                         <div className="input-div" style={{ display: 'flex', gap: '1rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <div className="input-heading">
                                     <i className="fas fa-suitcase"></i>
                                     <p>Specialization</p>
                                 </div>
-                                <input onChange={(e) => handle(e)} type="text" placeholder="Specialization" id="email" name="speciality" />
+                                <input onChange={(e) => handleD(e)} type="text" placeholder="Specialization" id="email" name="speciality" />
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <div className="input-heading">
                                     <i className="fas fa-key"></i>
                                     <p>License No.</p>
                                 </div>
-                                <input onChange={(e) => handle(e)} type="text" placeholder="License No." id="email" name="licenseno" />
+                                <input onChange={(e) => handleD(e)} type="text" placeholder="License No." id="email" name="license" />
                             </div>
                         </div>
                     }
@@ -124,7 +148,7 @@ const Signup = () => {
 
                 </div>
 
-                <input type="button" value="Sign Up" className="btn" onClick={register} />
+                <input type="button" value="Sign Up" className="btn" onClick={() => { register(type) }} />
                 <p style={{ textAlign: "right" }}>Already a user?
                     <Link style={{ marginLeft: "4px", color: "black", textDecoration: "underline" }} to='/login'>Log In.</Link>
                 </p>

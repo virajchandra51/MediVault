@@ -4,7 +4,7 @@ import Web3 from "web3";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
-import contract from "../contracts/cruds.json";
+import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
 
 const Visits = () => {

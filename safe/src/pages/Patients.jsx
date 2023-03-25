@@ -2,7 +2,7 @@ import React, { useState, Fragment, useEffect, useRef } from "react";
 import Web3 from "web3";
 import Navbar from "../components/Navbar";
 import Sidebar2 from "../components/Sidebar2";
-import contract from "../contracts/cruds.json";
+import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
 
 const Patients = () => {

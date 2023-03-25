@@ -1,21 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import Web3 from "web3";
-import contract from "../contracts/cruds.json";
+import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
 import "./Login.css";
 
 const Login = () => {
+    const [type, setType] = useState(false);
     const [doctors, setDoc] = useState([]);
     const [patients, setPatient] = useState([]);
+    const [cookies, setCookie] = useCookies();
 
     const [log, setLog] = useState({
-        type: "patient",
         mail: "",
-        password: "",
+        password: ""
     });
 
-    const [cookies, setCookie] = useCookies();
+    const web3 = new Web3(window.ethereum);
+    const mycontract = new web3.eth.Contract(
+        contract["abi"],
+        "0x64F7C3Cd37e9548217925909e09299ddb6E7F61e"
+    );
 
     function handle(e) {
         const newData = { ...log };
@@ -32,7 +37,7 @@ const Login = () => {
         const web3 = new Web3(window.ethereum);
         const mycontract = new web3.eth.Contract(
             contract["abi"],
-            contract["networks"]["5777"]["address"]
+            "0x64F7C3Cd37e9548217925909e09299ddb6E7F61e"
         );
 
         mycontract.methods
@@ -57,71 +62,83 @@ const Login = () => {
         setCookie(val, list);
     }
 
-    async function login() {
+    async function login(e) {
         var accounts = await window.ethereum.request({
             method: "eth_requestAccounts",
         });
         var currentaddress = accounts[0];
 
-        const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(
-            contract["abi"],
-            contract["networks"]["5777"]["address"]
-        );
+        if (!e) {
+            // patient
+            var pats = [];
+            await mycontract.methods
+                .getPatient()
+                .call()
+                .then(res => {
+                    res.map(d => {
+                        pats.push(d);
+                    })
+                });
 
-        mycontract.methods
-            .getdata()
-            .call()
-            .then((res) => {
-                let flag = 0;
-                for (let i = 0; i < res.length; i++) {
-                    const d = JSON.parse(res[i]);
-
-                    if (d['mail'] === log['mail']) {
-                        flag = 1;
-                        if (d['password'] === log['password']) {
-                            if (d['type'] === 'patient' && d['type'] === log['type']) {
-                                setCookie("mail", d["mail"]);
-                                setCookie("name", d["name"]);
-                                setCookie("type", d["type"]);
-                                setCookie("password", d["password"]);
-                                setCookie('index', i);
-
+            let flag = 0;
+            pats.map(data => {
+                fetch(`http://localhost:8080/ipfs/${data}`)
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.mail === log.mail) {
+                            if (res.password === log.password) {
+                                alert("Logged in");
+                                setCookie('hash', data);
+                                setCookie('type', 'patient');
                                 window.location.href = "/myprofile";
                             }
-                            else if (d['type'] === 'doctor' && d['type'] === log['type']) {
-                                setCookie("mail", d["mail"]);
-                                setCookie("name", d["name"]);
-                                setCookie("type", d["type"]);
-
-                                window.location.href = "/myprofiledoc";
+                            else {
+                                alert("Wrong Password");
                             }
                         }
-                        else {
-                            alert("wrong password");
-                            break;
-                        }
-                    }
-                }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
+            })
+        }
+        else {
+            // doctor
+            var docs = [];
+            await mycontract.methods
+                .getDoctor()
+                .call()
+                .then(res => {
+                    res.map(d => {
+                        docs.push(d);
+                    })
+                });
 
-                if (flag == 0) {
-                    alert("Please create your account first");
-                }
-            });
+            let flag = 0;
+            docs.map(data => {
+                fetch(`http://localhost:8080/ipfs/${data}`)
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.mail === log.mail) {
+                            if (res.password === log.password) {
+                                alert("Logged in");
+                                setCookie('hash', data);
+                                setCookie('type', 'doctor');
+                                window.location.href = "/myprofiledoc";
+                            }
+                            else {
+                                alert("Wrong Password");
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
+            })
+        }
     }
 
     async function show() {
-        var accounts = await window.ethereum.request({
-            method: "eth_requestAccounts",
-        });
-        var currentaddress = accounts[0];
-
-        const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(
-            contract["abi"],
-            contract["networks"]["5777"]["address"]
-        );
-
         mycontract.methods
             .getdata()
             .call()
@@ -130,7 +147,6 @@ const Login = () => {
                     console.log(JSON.parse(d));
                 })
             })
-
     }
 
 
@@ -174,14 +190,12 @@ const Login = () => {
                         <div className="input-heading" style={{ margin: "1rem 0", }}>
                             <i className="fas fa-key"></i>
                             <h5>User Type</h5>
-                            <select id="user-type" name="type" onChange={(e) => handle(e)}>
+                            <select id="user-type" name="type" onChange={() => { setType(!type) }}>
                                 <option value="patient">Patient</option>
                                 <option value="doctor">Doctor</option>
                             </select>
                         </div>
-
                     </div>
-
                     <p style={{ textAlign: "right" }}>Forgot password?</p>
                 </div>
 
@@ -189,7 +203,7 @@ const Login = () => {
                     type="button"
                     className="btn"
                     value="Log In"
-                    onClick={login}
+                    onClick={() => { login(type) }}
                 />
                 <p style={{ textAlign: "right" }}>Don't have an account?
                     <Link style={{ marginLeft: "4px", color: "black", textDecoration: "underline" }} to='/signup'>Sign Up.</Link>

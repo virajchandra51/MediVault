@@ -4,7 +4,7 @@ import Web3 from "web3";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
-import contract from "../contracts/cruds.json";
+import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
 
 const Allergies = () => {
