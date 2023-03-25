@@ -3,40 +3,40 @@ import { nanoid } from "nanoid";
 import Web3 from "web3";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
-import contract from "../contracts/cruds.json";
+import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
 
 const Doctors = () => {
     const [cookies, setCookie] = useCookies();
-    const [doctors, setDoc] = useState([{}]);
+    const [doctors, setDoc] = useState([]);
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
         contract["abi"],
-        contract["networks"]["5777"]["address"]
+        contract["address"]
     );
 
     useEffect(() => {
         const doc = [];
         async function getDoctors() {
             await mycontract.methods
-                .getdata()
+                .getDoctor()
                 .call()
-                .then(res => {
-                    res.map(data => {
-                        data = JSON.parse(data);
-                        if (data['type'] === 'doctor') {
-                            doc.push(data);
-                        }
-                    })
+                .then(async (res) => {
+                    for (let i = 0; i < res.length; i++) {
+                        const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json()
+                        data['hash'] = res[i];
+                        doc.push(data);
+                    }
                 })
             setDoc(doc);
         }
         getDoctors();
+        console.log(doctors);
         return;
     }, [doctors.length])
 
 
-    async function add(mail) {
+    async function add(hash) {
         var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         var currentaddress = accounts[0];
 
@@ -58,7 +58,6 @@ const Doctors = () => {
                         }).catch((err) => {
                             console.log(err);
                         })
-
                         return;
                     }
                 })
@@ -67,16 +66,14 @@ const Doctors = () => {
 
     function showDoctors() {
         return doctors.map(data => {
-            if (data.hasOwnProperty('name') && data.hasOwnProperty('mail') && data.hasOwnProperty('speciality')) {
-                return (
-                    <tr>
-                        <td>{data.name}</td>
-                        <td>{data.mail}</td>
-                        <td>{data.speciality}</td>
-                        <td><input type="button" value="Add" onClick={() => add(data.mail)} /></td>
-                    </tr>
-                )
-            }
+            return (
+                <tr>
+                    <td>{data.name}</td>
+                    <td>{data.mail}</td>
+                    <td>{data.speciality}</td>
+                    <td><input type="button" value="Add" onClick={() => add(data.hash)} /></td>
+                </tr>
+            )
         })
     }
 

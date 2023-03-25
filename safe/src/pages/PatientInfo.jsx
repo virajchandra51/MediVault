@@ -5,7 +5,7 @@ import { useCookies } from "react-cookie";
 import Navbar from "../components/Navbar";
 import Sidebar2 from "../components/Sidebar2";
 import Footer from "../components/Footer";
-import contract from "../contracts/cruds.json";
+import contract from "../contracts/contract.json";
 import Web3 from "web3";
 
 const PatientInfo = () => {

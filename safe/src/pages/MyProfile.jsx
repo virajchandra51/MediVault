@@ -5,13 +5,13 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import { useCookies } from 'react-cookie';
 import Web3 from "web3";
-import contract from '../contracts/cruds.json';
+import contract from '../contracts/contract.json';
 
 const MyProfile = () => {
   const web3 = new Web3(window.ethereum);
   const mycontract = new web3.eth.Contract(
     contract["abi"],
-    contract["networks"]["5777"]["address"]
+    contract["address"]
   );
   const [cookies, setCookie] = useCookies();
   const [name, setName] = React.useState("");
@@ -19,18 +19,13 @@ const MyProfile = () => {
   const [password, setPassword] = React.useState("");
 
   useEffect(() => {
-    mycontract.methods
-      .getdata()
-      .call()
-      .then((res) => {
-        for (let i = 0; i < res.length; i++) {
-          const d = JSON.parse(res[i]);
-          if (d['mail'] == cookies['mail']) {
-            setName(d['name']);
-            setEmail(d['mail']);
-            setPassword(d['password']);
-          }
-        }
+    const hash = cookies['hash'];
+    fetch(`http://localhost:8080/ipfs/${hash}`)
+      .then(res => res.json())
+      .then(res => {
+        setName(res.name);
+        setEmail(res.mail);
+        setPassword(res.password);
       })
   })
 
@@ -58,36 +53,11 @@ const MyProfile = () => {
   }
 
   async function save() {
-    setCookie("name", name);
-    setCookie("mail", email);
-    setCookie("password", password);
-    var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    var currentaddress = accounts[0];
 
-    const web3 = new Web3(window.ethereum);
-    const mycontract = new web3.eth.Contract(contract['abi'], contract['networks']['5777']['address']);
-    // console.log(mycontract);
-    mycontract.methods.updateData(parseInt(cookies['index']), JSON.stringify(auth)).send({ from: currentaddress })
-      .then(res => {
-        console.log(res);
-      })
   }
 
   async function show() {
-    const web3 = new Web3(window.ethereum);
-    const mycontract = new web3.eth.Contract(
-      contract["abi"],
-      contract["networks"]["5777"]["address"]
-    );
-    mycontract.methods
-      .getdata()
-      .call()
-      .then(res => {
-        res.map(data => {
-          var d = JSON.parse(data);
-          console.log(d);
-        })
-      })
+
   }
 
   return (
