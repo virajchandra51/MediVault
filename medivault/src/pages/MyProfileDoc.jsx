@@ -5,7 +5,7 @@ import Sidebar2 from "../components/Sidebar2";
 import Footer from "../components/Footer";
 import { useCookies } from 'react-cookie';
 import Web3 from "web3";
-import contract from '../contracts/cruds.json';
+import contract from '../contracts/contract.json';
 
 const MyProfileDoc = () => {
   const [cookies, setCookie] = useCookies();
