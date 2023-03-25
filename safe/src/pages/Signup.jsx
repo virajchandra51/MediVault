@@ -49,7 +49,7 @@ const Signup = () => {
         const web3 = new Web3(window.ethereum);
         const mycontract = new web3.eth.Contract(
             contract["abi"],
-            "0x64F7C3Cd37e9548217925909e09299ddb6E7F61e"
+            contract["address"]
         );
 
         if (!e) {

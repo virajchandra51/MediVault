@@ -42,7 +42,7 @@ const App = () => {
                 <Route path="/checkuphistory" element={<Visits />} />
                 <Route path="/doctors" element={<Doctors />} />
                 <Route path="/patients" element={<Patients />} />
-                <Route exact path="/patientData/:mail" element={<PatientInfo />} />
+                <Route exact path="/patientData/:phash" element={<PatientInfo />} />
 
               </Routes>
       </BrowserRouter>

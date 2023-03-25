@@ -59,21 +59,25 @@ const Doctors = () => {
                             }
                         }
 
-                        drs.push(hash);
-                        pat.selectedDoctors = drs;
+                        if (!drs.includes(hash)) {
+                            drs.push(hash);
+                            pat.selectedDoctors = drs;
 
-                        let client = create();
-                        client = create(new URL('http://127.0.0.1:5001'))
-                        const { cid } = await client.add(JSON.stringify(pat));
-                        const nhash = cid['_baseCache'].get('z');
+                            let client = create();
+                            client = create(new URL('http://127.0.0.1:5001'))
+                            const { cid } = await client.add(JSON.stringify(pat));
+                            const nhash = cid['_baseCache'].get('z');
 
-                        mycontract.methods.addPatient(nhash).send({from: currentaddress}).then(() => {
-                            setCookie('hash', nhash);
-                            alert("Doctor added");
-                            window.location.reload();
-                        }).catch((err) => {
-                            console.log(err);
-                        })
+                            mycontract.methods.addPatient(nhash).send({ from: currentaddress }).then(() => {
+                                setCookie('hash', nhash);
+                                alert("Doctor added");
+                            }).catch((err) => {
+                                console.log(err);
+                            })
+                        }
+                        else {
+                            alert("Doctor already added");
+                        }
                         break;
                     }
                 }

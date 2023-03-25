@@ -4,79 +4,94 @@ import Navbar from "../components/Navbar";
 import Sidebar2 from "../components/Sidebar2";
 import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
+import { create } from 'ipfs-http-client'
 
 const Patients = () => {
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
         contract["abi"],
-        contract["networks"]["5777"]["address"]
+        contract["address"]
     );
-    const [patients, setPatients] = useState([{}]);
+    const [patients, setPatients] = useState([]);
     const [cookies, setCookies] = useCookies();
 
     useEffect(() => {
-        const pats = [];
         async function getPatients() {
+            const pat = [];
+            const vis = [];
             await mycontract.methods
-                .getdata()
+                .getPatient()
                 .call()
-                .then(res => {
-                    res.map(data => {
-                        data = JSON.parse(data);
-                        if (data['type'] === 'patient') {
-                            let result = data.hasOwnProperty('selectedDoctors');
-                            if (result) {
-                                var list = data['selectedDoctors'];
-                                for (let j = 0; j < list.length; j++) {
-                                    if (list[j] === cookies['mail']) {
-                                        pats.push(data);
-                                        break;
+                .then(async (res) => {
+                    console.log(res);
+                    for (let i = res.length - 1; i >= 0; i--) {
+                        const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json()
+                        const selected = data.selectedDoctors;
+                        if (!vis.includes(data.mail)) {
+                            vis.push(data.mail);
+                            for (let j = 1; j < selected.length; j++) {
+                                if (selected[j] === cookies['hash']) {
+                                    let flag = 0;
+                                    for (let k = 0; k < pat.length; k++) {
+                                        if (pat[k].mail === data.mail) {
+                                            flag = 1;
+                                            break;
+                                        }
+                                    }
+                                    if (flag === 0) {
+                                        data['hash'] = res[i];
+                                        pat.push(data);
                                     }
                                 }
                             }
                         }
-                    })
+                    }
                 })
-            setPatients(pats);
+            setPatients(pat);
         }
         getPatients();
         return;
-    }, [patients.length])
+    }, [patients.length]);
 
 
-    function view(mail) {
-        const url = `/patientData/${mail}`
+    function view(phash) {
+        const url = `/patientData/${phash}`
         window.location.href = url;
     }
 
-    async function treated(mail) {
+    async function treated(phash) {
         var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         var currentaddress = accounts[0];
 
         const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(contract['abi'], contract['networks']['5777']['address']);
-        mycontract.methods.getdata().call()
-            .then(res => {
-                for (let i = 0; i < res.length; i++) {
-                    var d = JSON.parse(res[i]);
-                    if (d['type'] === 'patient' && d['mail'] === mail) {
-                        var list = d['selectedDoctors'];
-                        var newList = [];
-                        list.map(j => {
-                            if (j !== cookies['mail']) {
-                                newList.push(j);
-                            }
-                        })
-                        d['selectedDoctors'] = newList;
-                        mycontract.methods.updateData(i, JSON.stringify(d)).send({ from: currentaddress }).then(() => {
-                            alert("Patient removed");
-                            window.location.reload();
-                        }).catch((err) => {
-                            console.log(err);
-                        })
-                    }
-                }
-            })
+        const mycontract = new web3.eth.Contract(contract['abi'], contract['address']);
+
+        const data = await (await fetch(`http://localhost:8080/ipfs/${phash}`)).json();
+        const drs = data.selectedDoctors;
+        const newList = [];
+
+        for (let i = 1; i < drs.length; i++) {
+            if (drs[i] === cookies['hash']) {
+                continue;
+            }
+            else {
+                newList.push(drs[i]);
+            }
+        }
+
+        data.selectedDoctors = newList;
+
+        let client = create();
+        client = create(new URL('http://127.0.0.1:5001'));
+        const { cid } = await client.add(JSON.stringify(data));
+        const hash = cid['_baseCache'].get('z');
+
+        await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
+            alert("Patient Removed");
+            window.location.reload();
+        }).catch((err) => {
+            console.log(err);
+        })
     }
 
 
@@ -88,10 +103,10 @@ const Patients = () => {
                         <td>{patient.name}</td>
                         <td>{patient.mail}</td>
                         <td>
-                            <input type="button" value="View" onClick={() => view(patient.mail)} />
+                            <input type="button" value="View" onClick={() => view(patient.hash)} />
                         </td>
                         <td>
-                            <input type="button" value="Treated" onClick={() => treated(patient.mail)} />
+                            <input type="button" value="Treated" onClick={() => treated(patient.hash)} />
                         </td>
                     </tr>
                 )

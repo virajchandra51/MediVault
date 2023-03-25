@@ -18,23 +18,18 @@ const MyProfileDoc = () => {
   const web3 = new Web3(window.ethereum);
   const mycontract = new web3.eth.Contract(
     contract["abi"],
-    contract["networks"]["5777"]["address"]
+    contract["address"]
   );
 
   useEffect(() => {
-    mycontract.methods
-      .getdata()
-      .call()
-      .then((res) => {
-        for (let i = 0; i < res.length; i++) {
-          const d = JSON.parse(res[i]);
-          if (d['mail'] == cookies['mail']) {
-            setName(d['name']);
-            setEmail(d['mail']);
-            setPassword(d['password']);
-            setLicenseno(d['licenseno']);
-          }
-        }
+    const hash = cookies['hash'];
+    fetch(`http://localhost:8080/ipfs/${hash}`)
+      .then(res => res.json())
+      .then(res => {
+        setName(res.name);
+        setEmail(res.mail);
+        setPassword(res.password);
+        setLicenseno(res.license);
       })
   })
 

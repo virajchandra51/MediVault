@@ -19,7 +19,7 @@ const Login = () => {
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
         contract["abi"],
-        "0x64F7C3Cd37e9548217925909e09299ddb6E7F61e"
+        contract["address"]
     );
 
     function handle(e) {
@@ -37,7 +37,7 @@ const Login = () => {
         const web3 = new Web3(window.ethereum);
         const mycontract = new web3.eth.Contract(
             contract["abi"],
-            "0x64F7C3Cd37e9548217925909e09299ddb6E7F61e"
+            contract["address"]
         );
 
         mycontract.methods
@@ -71,25 +71,30 @@ const Login = () => {
         if (!e) {
             // patient
             var pats = [];
+            const vis = [];
             await mycontract.methods
                 .getPatient()
                 .call()
-                .then(res => {
-                    res.map(d => {
-                        pats.push(d);
-                    })
+                .then(async (res) => {
+                    for (let i = res.length - 1; i >= 0; i--) {
+                        const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
+                        if (!vis.includes(data.mail)) {
+                            vis.push(data.mail);
+                            pats.push(res[i]);
+                        }
+                    }
                 });
 
             let flag = 0;
-            pats.map(data => {
-                fetch(`http://localhost:8080/ipfs/${data}`)
+            pats.map(async (data) => {
+                await fetch(`http://localhost:8080/ipfs/${data}`)
                     .then(res => res.json())
                     .then(res => {
                         if (res.mail === log.mail) {
                             if (res.password === log.password) {
-                                alert("Logged in");
                                 setCookie('hash', data);
                                 setCookie('type', 'patient');
+                                alert("Logged in");
                                 window.location.href = "/myprofile";
                             }
                             else {
@@ -190,7 +195,7 @@ const Login = () => {
                         <div className="input-heading" style={{ margin: "1rem 0", }}>
                             <i className="fas fa-key"></i>
                             <h5>User Type</h5>
-                            <select id="user-type" name="type" onChange={() => { setType(!type) }} style={{padding:'0.5rem', backgroundColor:'white'}}>
+                            <select id="user-type" name="type" onChange={() => { setType(!type) }} style={{ padding: '0.5rem', backgroundColor: 'white' }}>
                                 <option value="patient">Patient</option>
                                 <option value="doctor">Doctor</option>
                             </select>

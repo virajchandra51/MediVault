@@ -9,38 +9,28 @@ import contract from "../contracts/contract.json";
 import Web3 from "web3";
 
 const PatientInfo = () => {
-    const { mail } = useParams();
-    const [patient, setPatient] = useState([{}]);
+    const { phash } = useParams();
+    const [patient, setPatient] = useState([]);
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
         contract["abi"],
-        contract["networks"]["5777"]["address"]
+        contract["address"]
     );
 
     useEffect(() => {
         const pat = [];
         async function getPatient() {
-            await mycontract.methods
-                .getdata()
-                .call()
-                .then(res => {
-                    for (let i = 0; i < res.length; i++) {
-                        var data = JSON.parse(res[i]);
-                        if (data['type'] === 'patient' && data['mail'] === mail) {
-                            setPatient(data);
-                            break;
-                        }
-                    }
-                })
+            const data = await (await fetch(`http://localhost:8080/ipfs/${phash}`)).json();
+            pat.push(data);
+            setPatient(pat);
         }
         getPatient();
         return;
     }, [patient.length])
 
     function showInsurance() {
-        let res = patient.hasOwnProperty('insurance');
-        if (res) {
-            return patient['insurance'].map((d) => {
+        if (patient.length > 0) {
+            return patient[0]['insurance'].map((d) => {
                 if (d.hasOwnProperty('company')) {
                     return (
                         <tr>
@@ -55,9 +45,8 @@ const PatientInfo = () => {
     }
 
     function showAllergies() {
-        let res = patient.hasOwnProperty('allergies');
-        if (res) {
-            return patient['allergies'].map((d) => {
+        if (patient.length > 0) {
+            return patient[0]['allergies'].map((d) => {
                 if (d.hasOwnProperty('name')) {
                     return (
                         <tr>
@@ -72,9 +61,8 @@ const PatientInfo = () => {
     }
 
     function showMedHistory() {
-        let res = patient.hasOwnProperty('medicalhistory');
-        if (res) {
-            return patient['medicalhistory'].map((d) => {
+        if (patient.length > 0) {
+            return patient[0]['medicalhistory'].map((d) => {
                 if (d.hasOwnProperty('disease')) {
                     return (
                         <tr>
@@ -89,9 +77,8 @@ const PatientInfo = () => {
     }
 
     function showHospHistory() {
-        let res = patient.hasOwnProperty('hospitalizationhistory');
-        if (res) {
-            return patient['hospitalizationhistory'].map((d) => {
+        if (patient.length > 0) {
+            return patient[0]['hospitalizationhistory'].map((d) => {
                 if (d.hasOwnProperty('datefrom')) {
                     return (
                         <tr>
@@ -107,9 +94,8 @@ const PatientInfo = () => {
     }
 
     function showCheckUpHistory() {
-        let res = patient.hasOwnProperty('visit');
-        if (res) {
-            return patient['visit'].map((d) => {
+        if (patient.length > 0) {
+            return patient[0]['visit'].map((d) => {
                 if (d.hasOwnProperty('name')) {
                     return (
                         <tr>
