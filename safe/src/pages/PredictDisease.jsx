@@ -70,7 +70,7 @@ const Insurance = () => {
                     style={{ display: "flex", flexDirection: "column", padding: "4rem", justifyContent: "center", alignItems: "center", gap: "1rem" }}
                 >
                     <h1>Not Feeling Well?</h1>
-                    <p>Answer the following questions for a quick diagnosis for your health. Yes, MediLocker is here.</p>
+                    <p>Answer the following questions for a quick diagnosis for your health. Yes, MediVault is here.</p>
                     <form style={{ width: '60%', margin: '2rem' , gap:'1rem', display:'flex', flexDirection:'column'}}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: '4px' }}>
