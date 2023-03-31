@@ -58,6 +58,7 @@ const Signup = () => {
             client = create(new URL('http://127.0.0.1:5001'));
             const { cid } = await client.add(JSON.stringify(regp));
             const hash = cid['_baseCache'].get('z');
+            console.log(hash);
 
             await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
                 alert("Account created");
@@ -71,6 +72,7 @@ const Signup = () => {
             client = create(new URL('http://127.0.0.1:5001'))
             const { cid } = await client.add(JSON.stringify(regd));
             const hash = cid['_baseCache'].get('z');
+            console.log(hash);
 
             await mycontract.methods.addDoctor(hash).send({ from: currentaddress }).then(() => {
                 alert("Account created");

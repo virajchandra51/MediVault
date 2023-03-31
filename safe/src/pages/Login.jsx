@@ -9,7 +9,7 @@ const Login = () => {
     const [type, setType] = useState(false);
     const [doctors, setDoc] = useState([]);
     const [patients, setPatient] = useState([]);
-    const [cookies, setCookie] = useCookies();
+    const [cookies, setCookie] = useCookies([]);
 
     const [log, setLog] = useState({
         mail: "",
@@ -92,6 +92,7 @@ const Login = () => {
                     .then(res => {
                         if (res.mail === log.mail) {
                             if (res.password === log.password) {
+                                console.log(data);
                                 setCookie('hash', data);
                                 setCookie('type', 'patient');
                                 alert("Logged in");
@@ -126,9 +127,9 @@ const Login = () => {
                     .then(res => {
                         if (res.mail === log.mail) {
                             if (res.password === log.password) {
-                                alert("Logged in");
                                 setCookie('hash', data);
                                 setCookie('type', 'doctor');
+                                alert("Logged in");
                                 window.location.href = "/myprofiledoc";
                             }
                             else {
@@ -153,8 +154,6 @@ const Login = () => {
                 })
             })
     }
-
-
 
     return (
         <div className="login-container bg-gradient-to-r from-cyan-500 to-blue-500 via-teal-200 ">
