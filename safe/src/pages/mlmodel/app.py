@@ -15,6 +15,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 import pickle
 
 #no need to do this thing lmao
+#
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -44,36 +45,36 @@ data_dict = {
 }
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
 
-@app.route('/change', methods = ['POST'])
-def change():
-    #print(request.form)
-    symptoms = [str(x) for x in request.form.values()]
-    input_data = [0] * len(data_dict["symptom_index"])
-    print(input_data)
-    for symptom in symptoms:
-        index = data_dict["symptom_index"][symptom]
-        input_data[index] = 1
+# @app.route('/change', methods = ['POST'])
+# def change():
+#     #print(request.form)
+#     symptoms = [str(x) for x in request.form.values()]
+#     input_data = [0] * len(data_dict["symptom_index"])
+#     print(input_data)
+#     for symptom in symptoms:
+#         index = data_dict["symptom_index"][symptom]
+#         input_data[index] = 1
          
-    input_data = np.array(input_data).reshape(1,-1)
+#     input_data = np.array(input_data).reshape(1,-1)
 
 
-    rf_prediction = data_dict["predictions_classes"][rf_model.predict(input_data)[0]]
-    nb_prediction = data_dict["predictions_classes"][nb_model.predict(input_data)[0]]
-    svm_prediction = data_dict["predictions_classes"][svm_model.predict(input_data)[0]]
+#     rf_prediction = data_dict["predictions_classes"][rf_model.predict(input_data)[0]]
+#     nb_prediction = data_dict["predictions_classes"][nb_model.predict(input_data)[0]]
+#     svm_prediction = data_dict["predictions_classes"][svm_model.predict(input_data)[0]]
 
-    a = list(set([rf_prediction, nb_prediction, svm_prediction]))
-    final_prediction = ', '.join(a)
-    return render_template('index1.html', dt1 = final_prediction)
+#     a = list(set([rf_prediction, nb_prediction, svm_prediction]))
+#     final_prediction = ', '.join(a)
+#     return render_template('index1.html', dt1 = final_prediction)
 
-@app.route('/allergy/<name>')
-def allergy(name):
-    data = json.loads(name)
-    print(data)
-    return json.dumps('name')
+# @app.route('/allergy/<name>')
+# def allergy(name):
+#     data = json.loads(name)
+#     print(data)
+#     return json.dumps('name')
 
 @app.route('/<s>')
 def predict(s):
@@ -101,4 +102,4 @@ def predict(s):
 
 
 if __name__ == '__main__':
-    app.run(host = '172.22.137.252',debug = True, port=5000)
+    app.run(debug = True, port=5000)
