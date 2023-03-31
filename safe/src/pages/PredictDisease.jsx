@@ -35,7 +35,7 @@ const Insurance = () => {
         "Lethargy": lethargy,
         "Chest Pain": chestpain,
      };
-        await fetch(`http://172.22.137.252:5000/${JSON.stringify(data)}`, {
+        await fetch(`http://192.168.1.20:5000/${JSON.stringify(data)}`, {
             // method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -65,7 +65,7 @@ const MedicalHistory = () => {
     const web3 = new Web3(window.ethereum);
     const mycontract = new web3.eth.Contract(
       contract["abi"],
-      contract["networks"]["5777"]["address"]
+      contract["address"]
     );
 
     mycontract.methods
