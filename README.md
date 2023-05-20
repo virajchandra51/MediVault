@@ -41,6 +41,28 @@ Share your records with our trusted medical experts, to get a prescription.
 3. ***Disease Prediction Model :***
 Get a precautionary alert about diseases you might suffer from, based on our ML model.
 
+### <u>WORKING :</u>
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/9.png?raw=true)
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/10.png?raw=true)
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/11.png?raw=true)
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/12.png?raw=true)
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/13.png?raw=true)
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/14.png?raw=true)
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/15.png?raw=true)
+
+### <u>IPFS INTEGRATION :</u>
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/5.png?raw=true)
+
+![](https://github.com/Kraniket901/MediVault/blob/master/safe/public/6.png?raw=true)
+
 ### <u>MARKETING GOALS :</u>
 
 > ***Offer User-Friendly Platform :***
